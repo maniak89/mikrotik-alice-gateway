@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/url"
+	"time"
 
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
@@ -113,6 +114,7 @@ func (s *storage) Log(ctx context.Context, routerID string, level storageModels.
 	if err := s.db.WithContext(ctx).Insert(&storageModels.Log{
 		RouterID: routerID,
 		Level:    level,
+		Time:     time.Now(),
 		Message:  msg,
 	}); err != nil {
 		logger.Error().Err(err).Msg("Failed add log")

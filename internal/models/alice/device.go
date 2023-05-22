@@ -38,6 +38,7 @@ const (
 
 type PropertyParameterValue struct {
 	Value PropertyParameterValueValue `json:"value"`
+	Name  string                      `json:"name"`
 }
 
 type PropertyParameterInstance string

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"time"
 
@@ -51,12 +52,21 @@ func (c *client) NotifyHostChanged(ctx context.Context, router *common.Router, h
 	}
 	req = req.WithContext(ctx)
 	req.URL.Query().Set("Content-Type", "application/json")
-	req.URL.Query().Set("Authorization", "Bearer "+c.config.OAuth2Token)
+	req.URL.Query().Set("Authorization", "OAuth "+c.config.OAuth2Token)
 	resp, err := c.client.Do(req)
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed make request")
 		return err
 	}
+	if resp.StatusCode != http.StatusOK {
+		blob, err := io.ReadAll(resp.Body)
+		if err != nil {
+			logger.Error().Err(err).Msg("Failed read body")
+		}
+		logger.Error().Str("status", resp.Status).Bytes("response", blob).Msg("status")
+		return nil
+	}
 	logger.Debug().Str("status", resp.Status).Msg("status")
+
 	return nil
 }

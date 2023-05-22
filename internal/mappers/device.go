@@ -72,9 +72,11 @@ func DeviceHostToAlice(device *common.Router, host *common.Host) alice.Device {
 						Events: []alice.PropertyParameterValue{
 							{
 								Value: alice.PropertyParameterInstanceGasDetected,
+								Name:  "В сети",
 							},
 							{
 								Value: alice.PropertyParameterInstanceGasNotDetected,
+								Name:  "Не в сети",
 							},
 						},
 					},

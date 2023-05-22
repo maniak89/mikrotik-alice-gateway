@@ -60,7 +60,8 @@ func DeviceHostToAlice(device *common.Router, host *common.Host) alice.Device {
 			SWVersion:    device.SWVersion,
 			Manufacturer: device.Manufacturer,
 		},
-		CustomData: device.AdditionalFields,
+		CustomData:   device.AdditionalFields,
+		Capabilities: []interface{}{},
 		Properties: []alice.Property{
 			{
 				Type:        alice.PropertyTypeEvent,

@@ -47,7 +47,7 @@ func DeviceHostToAlice(device *common.Router, host *common.Host) alice.Device {
 	return alice.Device{
 		ID:   CreateHostDeviceID(device.ID, host.ID),
 		Name: name,
-		Type: alice.DeviceTypeSensor,
+		Type: alice.DeviceTypeSensorGas,
 		DeviceInfo: &alice.DeviceInfo{
 			Model:        device.Model,
 			SWVersion:    device.SWVersion,

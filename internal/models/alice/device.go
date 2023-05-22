@@ -3,7 +3,7 @@ package alice
 type DeviceType string
 
 const (
-	DeviceTypeSensor DeviceType = "devices.types.sensor"
+	DeviceTypeSensorGas DeviceType = "devices.types.sensor.gas"
 )
 
 type Device struct {

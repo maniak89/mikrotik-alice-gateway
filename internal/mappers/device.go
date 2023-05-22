@@ -67,18 +67,16 @@ func DeviceHostToAlice(device *common.Router, host *common.Host) alice.Device {
 				Type:        alice.PropertyTypeEvent,
 				Retrievable: true,
 				Reportable:  true,
-				Parameters: []alice.PropertyParameter{
-					{
-						Instance: alice.PropertyParameterInstanceGas,
-						Events: []alice.PropertyParameterValue{
-							{
-								Value: alice.PropertyParameterInstanceGasDetected,
-								Name:  "В сети",
-							},
-							{
-								Value: alice.PropertyParameterInstanceGasNotDetected,
-								Name:  "Не в сети",
-							},
+				Parameters: alice.PropertyParameter{
+					Instance: alice.PropertyParameterInstanceGas,
+					Events: []alice.PropertyParameterValue{
+						{
+							Value: alice.PropertyParameterInstanceGasDetected,
+							Name:  "В сети",
+						},
+						{
+							Value: alice.PropertyParameterInstanceGasNotDetected,
+							Name:  "Не в сети",
 						},
 					},
 				},

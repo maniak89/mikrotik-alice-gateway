@@ -110,10 +110,16 @@ func (s *storage) Routers(ctx context.Context) ([]*storageModels.Router, error) 
 }
 
 func (s *storage) Log(ctx context.Context, routerID string, level storageModels.LogLevel, msg string) {
+	logger := log.Ctx(ctx).With().Str("router_id", routerID).Str("level", string(level)).Str("msg", msg).Logger()
+	switch level {
+	case storageModels.Error:
+		logger.Error().Msg("")
+	case storageModels.Info:
+		logger.Debug().Msg("")
+	}
 	if s.config.LogOnlyErrors && level != storageModels.Error {
 		return
 	}
-	logger := log.Ctx(ctx).With().Str("router_id", routerID).Str("level", string(level)).Str("msg", msg).Logger()
 	if err := s.db.WithContext(ctx).Insert(&storageModels.Log{
 		RouterID: routerID,
 		Level:    level,

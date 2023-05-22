@@ -52,6 +52,7 @@ func newWorker(config Config, provider device_provider.DeviceProvider, router *s
 			Name:    storageHost.Name,
 			Changed: time.Now(),
 			Updated: time.Now(),
+			Online:  storageHost.IsOnline,
 		}
 		result.hostMap[host.ID] = &host
 		result.storageHostMap[host.ID] = storageHost

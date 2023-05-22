@@ -25,11 +25,19 @@ func (s *service) Devices(w http.ResponseWriter, r *http.Request) {
 		aliceDevices.Devices = append(aliceDevices.Devices, mappers.DeviceToAlice(d)...)
 	}
 
-	if err := json.NewEncoder(w).Encode(alice.Response{
+	response := alice.Response{
 		RequestID: r.Header.Get(xRequestID),
 		Payload:   aliceDevices,
-	}); err != nil {
+	}
+	blob, err := json.Marshal(&response)
+	if err != nil {
 		logger.Error().Err(err).Msg("Failed marshal response")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	logger.Trace().Bytes("response", blob).Msg("Write response")
+	if _, err := w.Write(blob); err != nil {
+		logger.Error().Err(err).Msg("Failed write response")
 	}
 }

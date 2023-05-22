@@ -52,8 +52,8 @@ func (c *client) NotifyHostChanged(ctx context.Context, router *common.Router, h
 		return err
 	}
 	req = req.WithContext(ctx)
-	req.URL.Query().Set("Content-Type", "application/json")
-	req.URL.Query().Set("Authorization", "OAuth "+c.config.OAuth2Token)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "OAuth "+c.config.OAuth2Token)
 	resp, err := c.client.Do(req)
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed make request")

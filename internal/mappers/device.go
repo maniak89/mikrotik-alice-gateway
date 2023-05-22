@@ -44,6 +44,13 @@ func DeviceHostToAlice(device *common.Router, host *common.Host) alice.Device {
 	if name == "" {
 		name = device.Name + "_" + host.ID
 	}
+	state := alice.PayloadStateDevicePropertiesState{
+		Instance: alice.PropertyParameterInstanceGas,
+		Value:    alice.PropertyParameterInstanceGasNotDetected,
+	}
+	if host.Online {
+		state.Value = alice.PropertyParameterInstanceGasDetected
+	}
 	return alice.Device{
 		ID:   CreateHostDeviceID(device.ID, host.ID),
 		Name: name,
@@ -72,6 +79,9 @@ func DeviceHostToAlice(device *common.Router, host *common.Host) alice.Device {
 						},
 					},
 				},
+				State:          state,
+				LastUpdated:    host.Updated,
+				StateChangedAt: host.Changed,
 			},
 		},
 	}

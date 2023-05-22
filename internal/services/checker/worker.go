@@ -48,8 +48,10 @@ func newWorker(config Config, provider device_provider.DeviceProvider, router *s
 	}
 	for _, storageHost := range router.Hosts {
 		host := common.Host{
-			ID:   storageHost.ID,
-			Name: storageHost.Name,
+			ID:      storageHost.ID,
+			Name:    storageHost.Name,
+			Changed: time.Now(),
+			Updated: time.Now(),
 		}
 		result.hostMap[host.ID] = &host
 		result.storageHostMap[host.ID] = storageHost
@@ -123,6 +125,7 @@ func (w *worker) markAllOffline(ctx context.Context, err error) {
 		}
 		if h.Online {
 			h.Online = false
+			h.Changed = time.Now()
 			w.notify(ctx, storageHost)
 		}
 	}
@@ -163,6 +166,7 @@ func (w *worker) updateHosts(ctx context.Context, leases []device_provider.Lease
 				}
 				if host.Online != connected {
 					host.Online = connected
+					host.Changed = time.Now()
 					w.notify(ctx, storageHost)
 				}
 				break
@@ -170,9 +174,11 @@ func (w *worker) updateHosts(ctx context.Context, leases []device_provider.Lease
 		}
 		if !found && host.Online {
 			host.Online = false
+			host.Changed = time.Now()
 			storageHost.IsOnline = false
 			w.notify(ctx, storageHost)
 		}
+		host.Updated = time.Now()
 		if err := w.storage.UpdateHost(ctx, storageHost); err != nil {
 			logger.Error().Err(err).Msg("Failed update host")
 		}

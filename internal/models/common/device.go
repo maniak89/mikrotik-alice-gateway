@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"time"
 )
 
 type Router struct {
@@ -21,9 +22,11 @@ func (r *Router) String() string {
 }
 
 type Host struct {
-	ID     string
-	Name   string
-	Online bool
+	ID      string
+	Name    string
+	Online  bool
+	Changed time.Time
+	Updated time.Time
 }
 
 func (r *Router) Clone() *Router {

@@ -1,5 +1,9 @@
 package alice
 
+import (
+	"time"
+)
+
 type DeviceType string
 
 const (
@@ -48,10 +52,13 @@ type PropertyParameter struct {
 }
 
 type Property struct {
-	Type        PropertyType        `json:"type"`
-	Retrievable bool                `json:"retrievable"`
-	Reportable  bool                `json:"reportable"`
-	Parameters  []PropertyParameter `json:"parameters"`
+	Type           PropertyType                      `json:"type"`
+	Retrievable    bool                              `json:"retrievable"`
+	Reportable     bool                              `json:"reportable"`
+	Parameters     []PropertyParameter               `json:"parameters"`
+	State          PayloadStateDevicePropertiesState `json:"state"`
+	StateChangedAt time.Time                         `json:"state_changed_at"`
+	LastUpdated    time.Time                         `json:"last_updated"`
 }
 
 type DeviceInfo struct {

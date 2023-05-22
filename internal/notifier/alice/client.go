@@ -45,6 +45,7 @@ func (c *client) NotifyHostChanged(ctx context.Context, router *common.Router, h
 		logger.Error().Err(err).Msg("Failed marshal body")
 		return err
 	}
+	logger.Trace().Str("url", c.callbackAddress).Bytes("blob", blob).Msg("Prepare request body")
 	req, err := http.NewRequest(http.MethodPost, c.callbackAddress, bytes.NewReader(blob))
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed create request object")

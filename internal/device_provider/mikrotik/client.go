@@ -3,13 +3,17 @@ package mikrotik
 import (
 	"context"
 	"errors"
+	"net"
 	"sync"
+	"time"
 
 	"github.com/go-routeros/routeros"
 	"github.com/rs/zerolog/log"
 
 	"mikrotik-alice-gateway/internal/device_provider"
 )
+
+const reloginTimeout = time.Second * 5
 
 type client struct {
 	config     Config
@@ -27,15 +31,55 @@ func New(config Config) *client {
 }
 
 func (c *client) Init(ctx context.Context) error {
+	c.wCtx, c.cancelFunc = context.WithCancel(ctx)
+
+	if err := c.login(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *client) login(ctx context.Context) error {
 	logger := log.Ctx(ctx).With().Str("address", c.config.Address).Logger()
+
 	cl, err := routeros.Dial(c.config.Address, c.config.Username, c.config.Password)
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed connect to router")
 		return err
 	}
+
 	c.client = cl
-	c.wCtx, c.cancelFunc = context.WithCancel(ctx)
+
 	return nil
+}
+
+func (c *client) run(ctx context.Context, command string) (*routeros.Reply, error) {
+	logger := log.Ctx(ctx)
+	resp, err := c.client.Run(command)
+	if err != nil {
+		if errors.Is(err, &net.OpError{}) {
+			logger.Error().Err(err).Msg("Failed run command by network. Retry login")
+
+			c.client.Close()
+
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(reloginTimeout):
+			}
+
+			if err := c.login(ctx); err != nil {
+				logger.Error().Err(err).Msg("Login failed")
+
+				return nil, err
+			}
+
+			return c.run(ctx, command)
+		}
+	}
+
+	return resp, nil
 }
 
 func (c *client) Stop(ctx context.Context) {
@@ -49,7 +93,7 @@ func (c *client) Resource(ctx context.Context) (device_provider.Resource, error)
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	logger := log.Ctx(ctx).With().Str("address", c.config.Address).Logger()
-	resp, err := c.client.Run("/system/resource/print")
+	resp, err := c.run(ctx, "/system/resource/print")
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed exec interface print")
 		return device_provider.Resource{}, err
@@ -76,7 +120,7 @@ func (c *client) Interfaces(ctx context.Context) ([]IFace, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	logger := log.Ctx(ctx).With().Str("address", c.config.Address).Logger()
-	resp, err := c.client.Run("/interface/print")
+	resp, err := c.run(ctx, "/interface/print")
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed exec interface print")
 		return nil, err
@@ -99,7 +143,7 @@ func (c *client) Leases(ctx context.Context) ([]device_provider.Lease, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	logger := log.Ctx(ctx).With().Str("address", c.config.Address).Logger()
-	resp, err := c.client.Run("/ip/dhcp-server/lease/print")
+	resp, err := c.run(ctx, "/ip/dhcp-server/lease/print")
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed exec interface print")
 		return nil, err

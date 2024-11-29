@@ -59,7 +59,7 @@ func (c *client) NotifyHostChanged(ctx context.Context, router *common.Router, h
 		logger.Error().Err(err).Msg("Failed make request")
 		return err
 	}
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode >= 400 {
 		blob, err := io.ReadAll(resp.Body)
 		if err != nil {
 			logger.Error().Err(err).Msg("Failed read body")

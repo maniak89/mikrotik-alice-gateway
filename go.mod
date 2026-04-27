@@ -6,6 +6,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.5
 	github.com/go-routeros/routeros v0.0.0-20210123142807-2a44d57c6730
 	github.com/jackc/pgx/v5 v5.9.2
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.12.3
@@ -13,7 +14,6 @@ require (
 	github.com/oklog/run v1.2.0
 	github.com/rs/zerolog v1.35.1
 	github.com/stretchr/testify v1.11.1
-	gopkg.in/reform.v1 v1.5.1
 )
 
 require (

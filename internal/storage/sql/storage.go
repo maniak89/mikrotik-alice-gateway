@@ -148,7 +148,7 @@ func (s *storage) UpdateHost(ctx context.Context, host *storageModels.Host) erro
 func fetchRows[T any](ctx context.Context, db *sqlx.DB, query string, args ...any) ([]*T, error) {
 	logger := log.Ctx(ctx)
 
-	rows, err := db.QueryxContext(ctx, query, args)
+	rows, err := db.QueryxContext(ctx, query, args...)
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed find routers")
 		return nil, err

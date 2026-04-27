@@ -4,6 +4,8 @@ package storage
 import (
 	"slices"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 //reform:routers
@@ -61,17 +63,17 @@ type Log struct {
 
 //reform:hosts
 type Host struct {
-	ID            string        `reform:"id,pk"`
-	RouterID      string        `reform:"router_id"`
-	Name          string        `reform:"name"`
-	Address       []string      `reform:"address"`
-	MacAddress    []string      `reform:"mac_address"`
-	HostName      []string      `reform:"host_name"`
-	LastOnline    time.Time     `reform:"last_online"`
-	IsOnline      bool          `reform:"is_online"`
-	OnlineTimeout time.Duration `reform:"online_timeout"`
-	CreatedAt     time.Time     `reform:"created_at"`
-	UpdatedAt     time.Time     `reform:"updated_at"`
+	ID            string                   `reform:"id,pk"`
+	RouterID      string                   `reform:"router_id"`
+	Name          string                   `reform:"name"`
+	Address       pgtype.FlatArray[string] `reform:"address"`
+	MacAddress    pgtype.FlatArray[string] `reform:"mac_address"`
+	HostName      pgtype.FlatArray[string] `reform:"host_name"`
+	LastOnline    time.Time                `reform:"last_online"`
+	IsOnline      bool                     `reform:"is_online"`
+	OnlineTimeout time.Duration            `reform:"online_timeout"`
+	CreatedAt     time.Time                `reform:"created_at"`
+	UpdatedAt     time.Time                `reform:"updated_at"`
 }
 
 func (s *Host) BeforeUpdate() error {

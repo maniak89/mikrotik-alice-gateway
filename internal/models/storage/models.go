@@ -4,7 +4,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/lib/pq"
 )
 
 type Router struct {
@@ -60,17 +60,17 @@ type Log struct {
 
 //db:hosts
 type Host struct {
-	ID            string                   `db:"id,pk"`
-	RouterID      string                   `db:"router_id"`
-	Name          string                   `db:"name"`
-	Address       pgtype.FlatArray[string] `db:"address"`
-	MacAddress    pgtype.FlatArray[string] `db:"mac_address"`
-	HostName      pgtype.FlatArray[string] `db:"host_name"`
-	LastOnline    time.Time                `db:"last_online"`
-	IsOnline      bool                     `db:"is_online"`
-	OnlineTimeout time.Duration            `db:"online_timeout"`
-	CreatedAt     time.Time                `db:"created_at"`
-	UpdatedAt     time.Time                `db:"updated_at"`
+	ID            string         `db:"id,pk"`
+	RouterID      string         `db:"router_id"`
+	Name          string         `db:"name"`
+	Address       pq.StringArray `db:"address"`
+	MacAddress    pq.StringArray `db:"mac_address"`
+	HostName      pq.StringArray `db:"host_name"`
+	LastOnline    time.Time      `db:"last_online"`
+	IsOnline      bool           `db:"is_online"`
+	OnlineTimeout time.Duration  `db:"online_timeout"`
+	CreatedAt     time.Time      `db:"created_at"`
+	UpdatedAt     time.Time      `db:"updated_at"`
 }
 
 func (s *Host) BeforeUpdate() error {

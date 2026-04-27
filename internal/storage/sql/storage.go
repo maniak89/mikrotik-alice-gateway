@@ -157,7 +157,7 @@ func fetchRows[T any](ctx context.Context, db *sqlx.DB, query string, args ...an
 	result := make([]*T, 0)
 	for rows.Next() {
 		var router T
-		if err := rows.Scan(&router); err != nil {
+		if err := rows.StructScan(&router); err != nil {
 			return nil, fmt.Errorf("failed scan: %w", err)
 		}
 

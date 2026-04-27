@@ -2,6 +2,7 @@ package checker
 
 import (
 	"context"
+	"slices"
 	"sync"
 	"time"
 
@@ -156,9 +157,9 @@ func (w *worker) updateHosts(ctx context.Context, leases []device_provider.Lease
 		var found bool
 		host := w.hostMap[storageHost.ID]
 		for _, lease := range leases {
-			if storageHost.Address.String == lease.Address ||
-				storageHost.MacAddress.String == lease.MacAddress ||
-				(storageHost.HostName.String == lease.HostName && lease.HostName != "") {
+			if slices.Contains(storageHost.Address, lease.Address) ||
+				slices.Contains(storageHost.MacAddress, lease.MacAddress) ||
+				(lease.HostName != "" && slices.Contains(storageHost.HostName, lease.HostName)) {
 				found = true
 				connected := lease.Status == device_provider.LeaseStatusBound
 				storageHost.IsOnline = connected

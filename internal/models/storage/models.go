@@ -2,7 +2,7 @@
 package storage
 
 import (
-	"database/sql"
+	"slices"
 	"time"
 )
 
@@ -61,17 +61,17 @@ type Log struct {
 
 //reform:hosts
 type Host struct {
-	ID            string         `reform:"id,pk"`
-	RouterID      string         `reform:"router_id"`
-	Name          string         `reform:"name"`
-	Address       sql.NullString `reform:"address"`
-	MacAddress    sql.NullString `reform:"mac_address"`
-	HostName      sql.NullString `reform:"host_name"`
-	LastOnline    time.Time      `reform:"last_online"`
-	IsOnline      bool           `reform:"is_online"`
-	OnlineTimeout time.Duration  `reform:"online_timeout"`
-	CreatedAt     time.Time      `reform:"created_at"`
-	UpdatedAt     time.Time      `reform:"updated_at"`
+	ID            string        `reform:"id,pk"`
+	RouterID      string        `reform:"router_id"`
+	Name          string        `reform:"name"`
+	Address       []string      `reform:"address"`
+	MacAddress    []string      `reform:"mac_address"`
+	HostName      []string      `reform:"host_name"`
+	LastOnline    time.Time     `reform:"last_online"`
+	IsOnline      bool          `reform:"is_online"`
+	OnlineTimeout time.Duration `reform:"online_timeout"`
+	CreatedAt     time.Time     `reform:"created_at"`
+	UpdatedAt     time.Time     `reform:"updated_at"`
 }
 
 func (s *Host) BeforeUpdate() error {
@@ -80,9 +80,15 @@ func (s *Host) BeforeUpdate() error {
 }
 
 func (s *Host) Equal(o *Host) bool {
+	slices.Sort(s.Address)
+	slices.Sort(o.Address)
+	slices.Sort(s.HostName)
+	slices.Sort(o.HostName)
+	slices.Sort(s.MacAddress)
+	slices.Sort(o.MacAddress)
 	return s.ID == o.ID &&
-		s.Address.String == o.Address.String &&
-		s.MacAddress.String == o.MacAddress.String &&
-		s.HostName.String == o.HostName.String &&
+		slices.Equal(s.Address, o.Address) &&
+		slices.Equal(s.MacAddress, o.MacAddress) &&
+		slices.Equal(s.HostName, o.HostName) &&
 		s.Name == o.Name
 }

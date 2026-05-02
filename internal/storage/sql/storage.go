@@ -105,12 +105,11 @@ func (s *storage) Routers(ctx context.Context) ([]*storageModels.Router, error) 
 		hostMap[host.RouterID] = append(hostMap[host.RouterID], host)
 	}
 
-	result := make([]*storageModels.Router, 0)
 	for _, router := range routers {
 		router.Hosts = hostMap[router.ID]
 	}
 
-	return result, nil
+	return routers, nil
 }
 
 func (s *storage) Log(ctx context.Context, routerID string, level storageModels.LogLevel, msg string) {

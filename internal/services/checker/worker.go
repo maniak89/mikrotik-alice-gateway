@@ -100,7 +100,7 @@ func (w *worker) run(ctx context.Context) {
 	w.wg.Wait()
 }
 
-func (w *worker) stop(ctx context.Context) {
+func (w *worker) stop(context.Context) {
 	if w.cancelFunc != nil {
 		w.cancelFunc()
 	}
@@ -109,10 +109,6 @@ func (w *worker) stop(ctx context.Context) {
 	for _, c := range w.notifyCancelFuncs {
 		c()
 	}
-}
-
-func (w *worker) getRouter() *common.Router {
-	return &w.stateRouter
 }
 
 func (w *worker) markAllOffline(ctx context.Context, err error) {
@@ -131,7 +127,6 @@ func (w *worker) markAllOffline(ctx context.Context, err error) {
 			w.notify(ctx, storageHost)
 		}
 	}
-	return
 }
 
 func (w *worker) updateSystemInfo(ctx context.Context, resource device_provider.Resource, err error) {

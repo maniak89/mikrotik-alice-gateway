@@ -135,8 +135,8 @@ func (s *storage) Log(ctx context.Context, routerID string, level storageModels.
 
 func (s *storage) UpdateHost(ctx context.Context, host *storageModels.Host) error {
 	if _, err := s.db.NamedExecContext(ctx, `UPDATE public.hosts
-	SET router_id=:router_id, name=:name, address=:address, mac_address=:mac_address, host_name=:host_name,"+
-	" last_online=:last_online, is_online=:is_online, online_timeout=:online_timeout, updated_at=now()
+	SET router_id=:router_id, name=:name, address=:address, mac_address=:mac_address, host_name=:host_name,
+	last_online=:last_online, is_online=:is_online, online_timeout=:online_timeout, updated_at=now()
 	WHERE id=:id`, host); err != nil {
 		return fmt.Errorf("failed update: %w", err)
 	}

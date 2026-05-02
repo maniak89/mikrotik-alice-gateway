@@ -8,8 +8,8 @@ import (
 	"net/url"
 	"time"
 
-	_ "github.com/jackc/pgx/v5"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog/log"
 

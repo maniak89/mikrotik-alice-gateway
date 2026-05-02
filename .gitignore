@@ -21,3 +21,5 @@
 .tokens
 
 internal/device_provider/mikrotik/client_test.go
+
+.vscode/

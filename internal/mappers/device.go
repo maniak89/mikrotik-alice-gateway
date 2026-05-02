@@ -16,10 +16,6 @@ func DeviceToAlice(device *common.Router) []alice.Device {
 }
 
 func DeviceHostToAliceEvent(device *common.Router, host *common.Host) alice.PayloadStateDevice {
-	name := host.Name
-	if name == "" {
-		name = device.Name + "_" + host.ID
-	}
 	property := alice.PayloadStateDeviceProperties{
 		Type: alice.PropertyTypeEvent,
 		State: alice.PayloadStateDevicePropertiesState{

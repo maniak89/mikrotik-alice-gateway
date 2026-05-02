@@ -12,9 +12,7 @@ import (
 	"github.com/rs/zerolog/hlog"
 	"github.com/rs/zerolog/log"
 
-	"mikrotik-alice-gateway/internal/device_provider"
 	"mikrotik-alice-gateway/internal/models/common"
-	storageModels "mikrotik-alice-gateway/internal/models/storage"
 	"mikrotik-alice-gateway/internal/storage"
 	"mikrotik-alice-gateway/pkg/middleware/user"
 )
@@ -90,9 +88,4 @@ func (s *service) Shutdown(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-type router struct {
-	deviceProvider device_provider.DeviceProvider
-	router         *storageModels.Router
 }

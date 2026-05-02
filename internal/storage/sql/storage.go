@@ -4,14 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/url"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/reform.v1"
-	"gopkg.in/reform.v1/dialects"
 
 	storageModels "mikrotik-alice-gateway/internal/models/storage"
 	storagePkg "mikrotik-alice-gateway/internal/storage"
@@ -20,8 +20,7 @@ import (
 type storage struct {
 	config     Config
 	connection *sql.DB
-	db         *reform.Querier
-	reformDB   reform.DBTXContext
+	db         *sqlx.DB
 	driver     string
 }
 
@@ -64,9 +63,8 @@ func (s *storage) Connect(ctx context.Context) error {
 	}
 	s.connection = sqlDB
 
-	t := reform.NewDB(sqlDB, dialects.ForDriver(s.driver), reform.NewPrintfLogger(logger.Printf))
-	s.db = t.Querier
-	s.reformDB = t
+	t := sqlx.NewDb(sqlDB, s.driver)
+	s.db = t
 	return nil
 }
 
@@ -87,26 +85,31 @@ func (s *storage) Disconnect(ctx context.Context) error {
 
 func (s *storage) Routers(ctx context.Context) ([]*storageModels.Router, error) {
 	logger := log.Ctx(ctx)
-	rows, err := s.db.SelectAllFrom(storageModels.RouterTable, "")
+
+	hosts, err := fetchRows[storageModels.Host](ctx, s.db, "SELECT id, router_id, name, address, mac_address, host_name, last_online,"+
+		" is_online, online_timeout, created_at, updated_at FROM hosts")
+	if err != nil {
+		logger.Error().Err(err).Msg("Failed find hosts")
+		return nil, err
+	}
+
+	routers, err := fetchRows[storageModels.Router](ctx, s.db, "select id, user_id, name, address, username, password, lease_period_check,"+
+		"created_at, updated_at from routers")
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed find routers")
 		return nil, err
 	}
-	result := make([]*storageModels.Router, 0, len(rows))
-	for _, r := range rows {
-		router := r.(*storageModels.Router)
-		logger := logger.With().Str("router_id", router.ID).Logger()
-		result = append(result, router)
-		rows, err := s.db.SelectAllFrom(storageModels.HostTable, "where router_id = "+s.db.Placeholder(1), router.ID)
-		if err != nil {
-			logger.Error().Err(err).Msg("Failed find routers")
-			return nil, err
-		}
-		for _, r := range rows {
-			router.Hosts = append(router.Hosts, r.(*storageModels.Host))
-		}
+
+	hostMap := make(map[string][]*storageModels.Host, len(routers))
+	for _, host := range hosts {
+		hostMap[host.RouterID] = append(hostMap[host.RouterID], host)
 	}
-	return result, nil
+
+	for _, router := range routers {
+		router.Hosts = hostMap[router.ID]
+	}
+
+	return routers, nil
 }
 
 func (s *storage) Log(ctx context.Context, routerID string, level storageModels.LogLevel, msg string) {
@@ -120,18 +123,45 @@ func (s *storage) Log(ctx context.Context, routerID string, level storageModels.
 	if s.config.LogOnlyErrors && level != storageModels.Error {
 		return
 	}
-	if err := s.db.WithContext(ctx).Insert(&storageModels.Log{
+	if _, err := s.db.NamedExecContext(ctx, `INSERT INTO logs(router_id, "time", level, message) VALUES (:router_id, :time, :level, :message)`, &storageModels.Log{
 		RouterID: routerID,
 		Level:    level,
 		Time:     time.Now(),
 		Message:  msg,
 	}); err != nil {
 		logger.Error().Err(err).Msg("Failed add log")
-		return
 	}
-	return
 }
 
 func (s *storage) UpdateHost(ctx context.Context, host *storageModels.Host) error {
-	return s.db.WithContext(ctx).Save(host)
+	if _, err := s.db.NamedExecContext(ctx, `UPDATE public.hosts
+	SET router_id=:router_id, name=:name, address=:address, mac_address=:mac_address, host_name=:host_name,
+	last_online=:last_online, is_online=:is_online, online_timeout=:online_timeout, updated_at=now()
+	WHERE id=:id`, host); err != nil {
+		return fmt.Errorf("failed update: %w", err)
+	}
+
+	return nil
+}
+
+func fetchRows[T any](ctx context.Context, db *sqlx.DB, query string, args ...any) ([]*T, error) {
+	logger := log.Ctx(ctx)
+
+	rows, err := db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		logger.Error().Err(err).Msg("Failed find routers")
+		return nil, err
+	}
+
+	result := make([]*T, 0)
+	for rows.Next() {
+		var router T
+		if err := rows.StructScan(&router); err != nil {
+			return nil, fmt.Errorf("failed scan: %w", err)
+		}
+
+		result = append(result, &router)
+	}
+
+	return result, nil
 }

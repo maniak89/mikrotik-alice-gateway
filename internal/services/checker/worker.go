@@ -2,6 +2,7 @@ package checker
 
 import (
 	"context"
+	"slices"
 	"sync"
 	"time"
 
@@ -99,7 +100,7 @@ func (w *worker) run(ctx context.Context) {
 	w.wg.Wait()
 }
 
-func (w *worker) stop(ctx context.Context) {
+func (w *worker) stop(context.Context) {
 	if w.cancelFunc != nil {
 		w.cancelFunc()
 	}
@@ -108,10 +109,6 @@ func (w *worker) stop(ctx context.Context) {
 	for _, c := range w.notifyCancelFuncs {
 		c()
 	}
-}
-
-func (w *worker) getRouter() *common.Router {
-	return &w.stateRouter
 }
 
 func (w *worker) markAllOffline(ctx context.Context, err error) {
@@ -130,7 +127,6 @@ func (w *worker) markAllOffline(ctx context.Context, err error) {
 			w.notify(ctx, storageHost)
 		}
 	}
-	return
 }
 
 func (w *worker) updateSystemInfo(ctx context.Context, resource device_provider.Resource, err error) {
@@ -156,9 +152,9 @@ func (w *worker) updateHosts(ctx context.Context, leases []device_provider.Lease
 		var found bool
 		host := w.hostMap[storageHost.ID]
 		for _, lease := range leases {
-			if storageHost.Address.String == lease.Address ||
-				storageHost.MacAddress.String == lease.MacAddress ||
-				(storageHost.HostName.String == lease.HostName && lease.HostName != "") {
+			if slices.Contains(storageHost.Address, lease.Address) ||
+				slices.Contains(storageHost.MacAddress, lease.MacAddress) ||
+				(lease.HostName != "" && slices.Contains(storageHost.HostName, lease.HostName)) {
 				found = true
 				connected := lease.Status == device_provider.LeaseStatusBound
 				storageHost.IsOnline = connected

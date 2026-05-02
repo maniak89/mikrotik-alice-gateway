@@ -1,23 +1,23 @@
-//go:generate reform
 package storage
 
 import (
-	"database/sql"
+	"slices"
 	"time"
+
+	"github.com/lib/pq"
 )
 
-//reform:routers
 type Router struct {
-	ID               string        `reform:"id,pk"`
-	UserID           string        `reform:"user_id"`
-	Name             string        `reform:"name"`
-	Address          string        `reform:"address"`
-	Username         string        `reform:"username"`
-	Password         string        `reform:"password"`
-	LeasePeriodCheck time.Duration `reform:"lease_period_check"`
-	CreatedAt        time.Time     `reform:"created_at"`
-	UpdatedAt        time.Time     `reform:"updated_at"`
-	Hosts            []*Host       `reform:"-"`
+	ID               string        `db:"id,pk"`
+	UserID           string        `db:"user_id"`
+	Name             string        `db:"name"`
+	Address          string        `db:"address"`
+	Username         string        `db:"username"`
+	Password         string        `db:"password"`
+	LeasePeriodCheck time.Duration `db:"lease_period_check"`
+	CreatedAt        time.Time     `db:"created_at"`
+	UpdatedAt        time.Time     `db:"updated_at"`
+	Hosts            []*Host       `db:"-"`
 }
 
 func (s *Router) BeforeUpdate() error {
@@ -50,28 +50,27 @@ const (
 	Info  LogLevel = "Info"
 )
 
-//reform:logs
 type Log struct {
-	ID       string    `reform:"id,pk"`
-	RouterID string    `reform:"router_id"`
-	Time     time.Time `reform:"time"`
-	Level    LogLevel  `reform:"level"`
-	Message  string    `reform:"message"`
+	ID       string    `db:"id,pk"`
+	RouterID string    `db:"router_id"`
+	Time     time.Time `db:"time"`
+	Level    LogLevel  `db:"level"`
+	Message  string    `db:"message"`
 }
 
-//reform:hosts
+//db:hosts
 type Host struct {
-	ID            string         `reform:"id,pk"`
-	RouterID      string         `reform:"router_id"`
-	Name          string         `reform:"name"`
-	Address       sql.NullString `reform:"address"`
-	MacAddress    sql.NullString `reform:"mac_address"`
-	HostName      sql.NullString `reform:"host_name"`
-	LastOnline    time.Time      `reform:"last_online"`
-	IsOnline      bool           `reform:"is_online"`
-	OnlineTimeout time.Duration  `reform:"online_timeout"`
-	CreatedAt     time.Time      `reform:"created_at"`
-	UpdatedAt     time.Time      `reform:"updated_at"`
+	ID            string         `db:"id,pk"`
+	RouterID      string         `db:"router_id"`
+	Name          string         `db:"name"`
+	Address       pq.StringArray `db:"address"`
+	MacAddress    pq.StringArray `db:"mac_address"`
+	HostName      pq.StringArray `db:"host_name"`
+	LastOnline    time.Time      `db:"last_online"`
+	IsOnline      bool           `db:"is_online"`
+	OnlineTimeout time.Duration  `db:"online_timeout"`
+	CreatedAt     time.Time      `db:"created_at"`
+	UpdatedAt     time.Time      `db:"updated_at"`
 }
 
 func (s *Host) BeforeUpdate() error {
@@ -80,9 +79,15 @@ func (s *Host) BeforeUpdate() error {
 }
 
 func (s *Host) Equal(o *Host) bool {
+	slices.Sort(s.Address)
+	slices.Sort(o.Address)
+	slices.Sort(s.HostName)
+	slices.Sort(o.HostName)
+	slices.Sort(s.MacAddress)
+	slices.Sort(o.MacAddress)
 	return s.ID == o.ID &&
-		s.Address.String == o.Address.String &&
-		s.MacAddress.String == o.MacAddress.String &&
-		s.HostName.String == o.HostName.String &&
+		slices.Equal(s.Address, o.Address) &&
+		slices.Equal(s.MacAddress, o.MacAddress) &&
+		slices.Equal(s.HostName, o.HostName) &&
 		s.Name == o.Name
 }
